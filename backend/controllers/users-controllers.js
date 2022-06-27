@@ -86,12 +86,12 @@ const login = async (req, res, next) => {
     })
   } catch (err) {
     const error = new HttpError('Logging is failed. please try again')
-    next(error)
+    return next(error)
   }
 
   if (!identifiedUser || identifiedUser.password !== password) {
     const error = new HttpError(' email or password is invalid. credentials seem to be wrong.', 401)
-    next(error)
+    return next(error)
   }
   res.status(200).json({
     message: 'Logged in'
