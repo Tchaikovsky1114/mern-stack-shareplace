@@ -24,13 +24,20 @@ const getUsers = async (req, res, next) => {
   })
 };
 
+
+
+
+
+
+
 const signup = async (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    console.log(errors)
     const error = new HttpError('입력 정보를 확인해주세요.', 422)
     return next(error)
   }
+
   const {
     name,
     email,
@@ -55,7 +62,7 @@ const signup = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
-    image: 'https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-image-182145777.jpg',
+    image: req.file.path,
     password,
     places: []
   })
@@ -69,7 +76,8 @@ const signup = async (req, res, next) => {
   res.status(201).json({
     user: createdUser.toObject({
       getters: true
-    })
+    },
+    )
   });
 };
 
@@ -93,9 +101,9 @@ const login = async (req, res, next) => {
     const error = new HttpError(' email or password is invalid. credentials seem to be wrong.', 401)
     return next(error)
   }
-  res.status(200).json({
-    message: 'Logged in'
-  })
+  res.status(200).json({message: 'Logged in',
+  user: identifiedUser.toObject({getters:true})
+});
 };
 
 exports.getUsers = getUsers;

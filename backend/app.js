@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs')
+const path = require('path');
 
 // bodyParser는 객체 및 배열과 같은 일반적인 자바스크립트 자료구조를 추출하고 변환한다.
 // 이후 next 함수를 자동으로 호출하여 다음 미들웨어에 도달하게 한다.
@@ -14,6 +16,10 @@ const HttpError = require('./models/http-error')
 const app = express();
 
 app.use(bodyParser.json());
+
+// 요청하는 파일을 해당 경로에서 꺼내주는 express.static
+//express.static 미들웨어 함수를 이용해 정적 디렉토리를 설정한 순서대로 파일을 검색한다
+app.use('/uploads/images',express.static(path.join('uploads','images')));
 
 // CORS 해결하기 위한 Headers설정.
 app.use((req, res, next) => {
@@ -41,6 +47,18 @@ app.use((req, res, next) => {
 
 // 4개의 인수를 제공하면 error 인수를 받는다.
 app.use((error, req, res, next) => {
+
+  // image roll-back
+
+  // Multer를 통해 file을 request 객체로 받을 수 있다.
+  // api/places , api/users router에서 처리 되지 않은 file이 존재한다면
+  // fs.unlink를 통해 삭제할 수 있다.
+  if(req.file) {
+    // file.path는 파일 객체가 존재할 때 갖는 프로퍼티다.
+    fs.unlink(req.file.path,(err) => {
+      console.log(err);
+    })
+  }
   if (res.headerSent) {
     return next(error)
   }
