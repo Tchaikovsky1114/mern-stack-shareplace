@@ -26,7 +26,9 @@ app.use((req, res, next) => {
   // 접근할 수 있는 호스트를 설정한다. '*'같은 경우 모든 도메인을 허용한다.
   res.setHeader('Access-Control-Allow-Origin', '*');
   // 들어올 수 있는 RequestHeader를 설정한다.
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type', 'Accept', 'Authorization')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+  'Origin, X-Requested-With, Content-Type', 'Accept', 'Authorization')
   // 들어올 수 있는 Http Request Method를 설정한다.
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE')
   next();

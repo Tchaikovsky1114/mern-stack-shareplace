@@ -24,7 +24,7 @@ const getPlaceById = async (req,res,next) => {
    const error = new HttpError('Could not find a places for the provided id.',404)
    return next(error);
   }
-  res.json({place: place.toObject({getters: true})}); // shorthand
+  res.json({place: place.toObject({getters: true})});
 }
 
 const getPlacesByUserId = async (req,res,next) => {
@@ -133,7 +133,11 @@ const updatePlaceById = async (req,res,next) => {
 
   place.title = title;
   place.description = description;
-  place.image = req.file.path;
+  // image 파일이 없을 때에는 title,description만 update될 수 있게 logic 작성
+  if(req.file){
+    place.image = req.file.path;
+  }
+  
 
   try{
     await place.save()
