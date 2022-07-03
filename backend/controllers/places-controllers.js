@@ -1,19 +1,23 @@
-
-const HttpError = require('../models/http-error')
 const fs = require('fs');
+
 const {validationResult} = require('express-validator');
+const HttpError = require('../models/http-error')
+
 const getCoordsForAddress = require('../util/location')
+
 const Place = require('../models/place')
 const User = require('../models/user');
-const { default: mongoose } = require('mongoose');
+
+const mongoose = require('mongoose');
 
 
 
 const getPlaceById = async (req,res,next) => {
   const placeId = req.params.pid;
+
   let place;
   try{
-    place = await Place.findById(placeId).exec()  
+    place = await Place.findById(placeId)
   }catch(err){
     const error = new HttpError('get place error ', 500)
     // next를 통해 반환한다.
@@ -27,8 +31,15 @@ const getPlaceById = async (req,res,next) => {
   res.json({place: place.toObject({getters: true})});
 }
 
+
+
+
+
+
 const getPlacesByUserId = async (req,res,next) => {
   const userId = req.params.uid;
+
+
   let userWithPlaces
   try{
     // places = await Place.find({ creator: userId }).exec()
@@ -37,9 +48,13 @@ const getPlacesByUserId = async (req,res,next) => {
     const error = new HttpError('something wrong. please ensure username.',500);
     return next(error);
   }
+
+
   if(!userWithPlaces || userWithPlaces.length === 0){
     return next( new HttpError('not exist userplaces',404))
   }
+
+
   res.json({places: userWithPlaces.places.map(place => place.toObject({getters: true}))})
 }
 
@@ -50,17 +65,24 @@ const getPlacesByUserId = async (req,res,next) => {
 const createPlace = async (req,res,next) => {
   // 작성한 validatiors를 관찰할 수 있게 만드는 validationResult.
   const errors= validationResult(req);
+
+
+
   if(!errors.isEmpty()){
     // 비동기 코드로 작업할 때 throw는 express에서 올바르게 작동하지 않으므로, next를 사용한다.
     return next(new HttpError ('입력하신 정보가 유효하지 않습니다', 422));
   }
-  const {title, description, address, creator} = req.body;
+
+  const {title, description, address} = req.body;
+
   let coordinates;
   try{
     coordinates = await getCoordsForAddress(address)
   }catch(err){
-    return next(new HttpError ('Coordinates can not found. please try again'),500)
+    return next(err)
   }
+
+
 
   const createdPlace = new Place({
     title,
@@ -68,9 +90,11 @@ const createPlace = async (req,res,next) => {
     address,
     location:coordinates,
     image: req.file.path,
-    creator
+    // auth-jwt에서 decodedToken으로 얻은 userId 
+    creator:req.userData.userId
   })
   
+
   let user;
 
   try{
@@ -102,26 +126,19 @@ const createPlace = async (req,res,next) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
 const updatePlaceById = async (req,res,next) => {
   const errors= validationResult(req);
+
   if(!errors.isEmpty()){    
-    throw new HttpError ('입력하신 정보가 유효하지 않습니다', 422)
+    return next(new HttpError ('입력하신 정보가 유효하지 않습니다', 422))
   }
   
   const {title, description} = req.body;
   
   const placeId = req.params.pid;
   
+
+
   let place;
 
   try{
@@ -139,6 +156,11 @@ const updatePlaceById = async (req,res,next) => {
   }
   
 
+  if(place.creator.toString() !== req.userData.userId){
+    const error = new HttpError('허용된 접근자가 아닙니다.', 403)
+    return next(error);
+  }
+
   try{
     await place.save()
   }catch(err){
@@ -147,34 +169,8 @@ const updatePlaceById = async (req,res,next) => {
   }
   
   res.status(200).json({place: place.toObject({getters: true})})
+  
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -208,6 +204,12 @@ const deletePlaceById = async (req,res,next) => {
 
   const imagePath = place.image;
   
+  // populate로 찾았기 때문에 creator..
+  if(place.creator.id !== req.userData.userId){
+    const error = new HttpError('허용된 접근자가 아닙니다.',403);
+    return next(error);
+  }
+
   try{
     const session = await mongoose.startSession();
     session.startTransaction();

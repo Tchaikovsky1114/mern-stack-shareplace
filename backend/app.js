@@ -14,12 +14,21 @@ const usersRoutes = require('./routes/users-route')
 const HttpError = require('./models/http-error')
 
 const app = express();
+const cors = require('cors')
+
+
 
 app.use(bodyParser.json());
 
 // 요청하는 파일을 해당 경로에서 꺼내주는 express.static
 //express.static 미들웨어 함수를 이용해 정적 디렉토리를 설정한 순서대로 파일을 검색한다
 app.use('/uploads/images',express.static(path.join('uploads','images')));
+
+
+
+
+app.use(cors())
+
 
 // CORS 해결하기 위한 Headers설정.
 app.use((req, res, next) => {
@@ -30,9 +39,11 @@ app.use((req, res, next) => {
     'Access-Control-Allow-Headers',
   'Origin, X-Requested-With, Content-Type', 'Accept', 'Authorization')
   // 들어올 수 있는 Http Request Method를 설정한다.
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE,OPTIONS')
+
   next();
 })
+
 
 
 app.use('/api/places', placesRoutes)

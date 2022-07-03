@@ -1,0 +1,10 @@
+{
+  "env": {
+    "DB_USER": "placeshere",
+    "DB_PASSWORD":"83Kn%40Cwc!ujwrDE",
+    "DB_NAME":"shareplaces",
+    "GOOGLE_API_KEY":"AIzaSyCRZbOd0b5LO_bJxhXTnghlnXdF_2MrZf0",
+    "JWT_KEY":"jwt-donotshareyourtoken"
+  }
+  
+}

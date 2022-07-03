@@ -26,12 +26,6 @@ const getUsers = async (req, res, next) => {
   })
 };
 
-
-
-
-
-
-
 const signup = async (req, res, next) => {
   
   const errors = validationResult(req);
@@ -42,7 +36,7 @@ const signup = async (req, res, next) => {
 
   const {name,email,password} = req.body;
 
-//
+
   let existingUser;
   try {
     existingUser = await User.findOne({
@@ -58,7 +52,7 @@ const signup = async (req, res, next) => {
     return next(error);
   }
 
-//
+
   let hashedPassword;
   try {
     hashedPassword = await bcrypt.hash(password, 12);
@@ -67,8 +61,6 @@ const signup = async (req, res, next) => {
     return next(error);
   }
 
-
-//
   const createdUser = new User({
     name,
     email,
@@ -83,7 +75,7 @@ const signup = async (req, res, next) => {
     return next(error)
   }
 
-//
+
   let token;
   try{
     token = jwt.sign(
@@ -112,31 +104,15 @@ const signup = async (req, res, next) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const login = async (req, res, next) => {
   
   const {email,password} = req.body;
 
   let identifiedUser;
   try {
-    identifiedUser = await User.findOne({
-      email: email
-    })
+    identifiedUser = await User.findOne({email: email})
   } catch (err) {
-    const error = new HttpError('알 수 없는 오류로 인해 로그인에 실패하였습니다.')
+    const error = new HttpError('알 수 없는 오류로 인해 로그인에 실패하였습니다.',500)
     return next(error)
   }
 
@@ -146,17 +122,18 @@ const login = async (req, res, next) => {
   }
 
   let isValidPassword = false;
+  
   try {
     // 지금 접속을 시도하는 사람이 입력한 email을 db에서 확인하여 입력과 일치하는 이메일을 찾은 뒤,
     // 입력한 비밀번호와 db 내 hashed password를 비교한다.
-    isValidPassword = await bcrypt.compare(password, identifiedUser.password);
+    isValidPassword = await bcrypt.compare(password, identifiedUser.password)
   } catch (err) {
-    const error = new HttpError('암호화에 오류가 발생하였습니다.', 401)
+    const error = new HttpError('암호화에 오류가 발생하였습니다.', 500)
     return next(error);
   }
   // false값을 반환하더라도 catch문으로 넘어가지 않기에 (error가 아닌 false 반환) false 처리 logic 작성
   if (!isValidPassword) {
-    const error = new HttpError('암호화에 오류가 발생하였습니다.', 401)
+    const error = new HttpError('이메일 또는 비밀번호의 형식이 잘못되었습니다.', 401)
     return next(error);
   }
 
@@ -164,20 +141,15 @@ const login = async (req, res, next) => {
   let token;
   try{
     token = jwt.sign(
-      {
-        userId: identifiedUser.id,
-        email: identifiedUser.email
-      },
+      {userId: identifiedUser.id, email: identifiedUser.email},
       'jwt-donotshareyourtoken',
-      {
-        expiresIn: '1h'
-      })
+      {expiresIn: '1h'})
   }catch(err){
     const error = new HttpError('토큰 생성에 실패하였습니다.',500)
     return next(error);
   }
 
-  res.status(200).json({
+  res.json({
     userId: identifiedUser.id,
     email:identifiedUser.email,
     token:token
