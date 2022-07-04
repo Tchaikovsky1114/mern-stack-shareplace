@@ -24,7 +24,7 @@ module.exports = (req,res,next) => {
     }
     // verify는 decoding 된 payload를 반환한다. (앞서 signup에서  jwt sign메서드를 사용하여 생성한 jwt token.)
     // 그렇기 때문에 security key를 맞추어야 함.
-    const decodedToken = jwt.verify(token,'jwt-donotshareyourtoken');
+    const decodedToken = jwt.verify(token,process.env.JWT_KEY);
 
     // request에 동적 property추가
     // 인증이 필요한 또 다른 router 에서 사용할 수 있게 한다.

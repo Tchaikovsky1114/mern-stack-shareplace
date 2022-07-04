@@ -20,14 +20,11 @@ const cors = require('cors')
 
 app.use(bodyParser.json());
 
-// 요청하는 파일을 해당 경로에서 꺼내주는 express.static
-//express.static 미들웨어 함수를 이용해 정적 디렉토리를 설정한 순서대로 파일을 검색한다
-app.use('/uploads/images',express.static(path.join('uploads','images')));
-
-
-
-
 app.use(cors())
+
+
+app.use('/uploads/images', express.static(path.join('uploads', 'images')));
+
 
 
 // CORS 해결하기 위한 Headers설정.
@@ -44,8 +41,6 @@ app.use((req, res, next) => {
   next();
 })
 
-
-
 app.use('/api/places', placesRoutes)
 app.use('/api/users', usersRoutes);
 
@@ -55,8 +50,24 @@ app.use('/api/users', usersRoutes);
 app.use((req, res, next) => {
   const error = new HttpError('존재하지 않는 경로입니다.', 404);
   throw error;
-
 })
+
+app.use((req,res,next) => {
+  res.sendFile(path.resolve(__dirname, 'public', 'index.html'))
+})
+
+
+// 요청하는 파일을 해당 경로에서 꺼내주는 express.static
+//express.static 미들웨어 함수를 이용해 정적 디렉토리를 설정한 순서대로 파일을 검색한다
+app.use(express.static(path.join('public')));
+
+
+
+
+
+
+
+
 
 // 4개의 인수를 제공하면 error 인수를 받는다.
 app.use((error, req, res, next) => {
@@ -83,9 +94,9 @@ app.use((error, req, res, next) => {
 
 
 // listen 이전에 mongo connect
-mongoose.connect('mongodb+srv://placeshere:83Kn%40Cwc!ujwrDE@cluster0.jxzg0ao.mongodb.net/shareplaces?retryWrites=true&w=majority')
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.jxzg0ao.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`)
   .then(() => {
-    app.listen(5050);
+    app.listen(process.env.PORT || 5050);
   }).catch((err) => {
     console.log(err, 'can not connect to database')
   });

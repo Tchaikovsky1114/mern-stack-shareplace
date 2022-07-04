@@ -83,7 +83,7 @@ const signup = async (req, res, next) => {
         userId: createdUser.id,
         email: createdUser.email
       },
-      'jwt-donotshareyourtoken',
+      process.env.JWT_KEY,
       {
         expiresIn: '1h'
       })
@@ -142,7 +142,7 @@ const login = async (req, res, next) => {
   try{
     token = jwt.sign(
       {userId: identifiedUser.id, email: identifiedUser.email},
-      'jwt-donotshareyourtoken',
+      process.env.JWT_KEY,
       {expiresIn: '1h'})
   }catch(err){
     const error = new HttpError('토큰 생성에 실패하였습니다.',500)
